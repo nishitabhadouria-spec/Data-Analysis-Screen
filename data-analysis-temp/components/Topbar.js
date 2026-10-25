@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useRef, useState } from "react";
+
 export function Topbar() {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -24,8 +26,23 @@ export function Topbar() {
     }
   }
 
+  function openMobileSidebar() {
+    window.dispatchEvent(
+      new Event("stechgrow:open-mobile-sidebar")
+    );
+  }
+
   return (
     <header className="topbar">
+      <button
+        type="button"
+        className="mobile-menu-button"
+        aria-label="Open navigation menu"
+        onClick={openMobileSidebar}
+      >
+        ☰
+      </button>
+
       <div className="topbar-left">
         <input
           ref={fileInputRef}
@@ -70,7 +87,9 @@ export function Topbar() {
           className="icon-button"
           aria-label="Notifications"
           title="Notifications"
-          onClick={() => window.alert("You have no new notifications.")}
+          onClick={() =>
+            window.alert("You have no new notifications.")
+          }
         >
           ♧
         </button>
@@ -88,7 +107,6 @@ export function Topbar() {
       {selectedFile && (
         <div className="upload-status" role="status">
           <span>{uploadMessage}</span>
-
           <button type="button" onClick={clearSelectedFile}>
             Clear
           </button>

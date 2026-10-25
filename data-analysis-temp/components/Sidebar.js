@@ -1,9 +1,50 @@
+
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    function openSidebar() {
+      setIsMobileOpen(true);
+    }
+
+    function closeSidebar() {
+      setIsMobileOpen(false);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        closeSidebar();
+      }
+    }
+
+    window.addEventListener(
+      "stechgrow:open-mobile-sidebar",
+      openSidebar
+    );
+    window.addEventListener(
+      "stechgrow:close-mobile-sidebar",
+      closeSidebar
+    );
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener(
+        "stechgrow:open-mobile-sidebar",
+        openSidebar
+      );
+      window.removeEventListener(
+        "stechgrow:close-mobile-sidebar",
+        closeSidebar
+      );
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const mainItems = [
     ["▦", "Dashboard"],
@@ -28,79 +69,126 @@ export function Sidebar() {
     setIsLightTheme(nextTheme);
   }
 
+  function closeMobileSidebar() {
+    setIsMobileOpen(false);
+  }
+
   return (
-    <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
-      <div className="brand">
-        <img
-          src="/stechgrow-logo.svg"
-          alt="Stechgrow logo"
-          className="brand-logo"
-        />
-
-        {!isCollapsed && (
-          <span className="brand-name">Stechgrow</span>
-        )}
-
+    <>
+      {isMobileOpen && (
         <button
           type="button"
-          className="brand-collapse"
-          onClick={() => setIsCollapsed((current) => !current)}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          ◫
-        </button>
+          className="sidebar-overlay"
+          aria-label="Close navigation menu"
+          onClick={closeMobileSidebar}
+        />
+      )}
 
-        {!isCollapsed && (
-          <div className="sidebar-search">
-            <span>⌕</span>
-            <span>AI Quick Search</span>
-          </div>
-        )}
-      </div>
+      <aside
+        id="main-sidebar"
+        className={`sidebar ${
+          isCollapsed ? "collapsed" : ""
+        } ${isMobileOpen ? "mobile-open" : ""}`}
+        aria-label="Sidebar navigation"
+      >
+        <div className="brand">
+          <img
+            src="/stechgrow-logo.svg"
+            alt="Stechgrow logo"
+            className="brand-logo"
+          />
 
-      <nav className="sidebar-nav" aria-label="Main navigation">
-        {mainItems.map(([icon, label]) => (
+          {!isCollapsed && (
+            <span className="brand-name">Stechgrow</span>
+          )}
+
           <button
             type="button"
-            key={label}
-            className={`nav-item ${label === "Data Analysis" ? "active" : ""}`}
-            title={isCollapsed ? label : undefined}
-            aria-current={label === "Data Analysis" ? "page" : undefined}
+            className="brand-collapse"
+            aria-label={
+              isMobileOpen
+                ? "Close sidebar"
+                : isCollapsed
+                  ? "Expand sidebar"
+                  : "Collapse sidebar"
+            }
+            title={
+              isMobileOpen
+                ? "Close sidebar"
+                : isCollapsed
+                  ? "Expand sidebar"
+                  : "Collapse sidebar"
+            }
             onClick={() => {
-              // Other pages belong to other team members.
-            }}
-          >
-            <span className="nav-icon">{icon}</span>
-            {!isCollapsed && <span className="nav-label">{label}</span>}
-          </button>
-        ))}
-      </nav>
-
-      <nav className="sidebar-bottom" aria-label="Settings navigation">
-        {bottomItems.map(([icon, label]) => (
-          <button
-            type="button"
-            className="nav-item"
-            key={label}
-            title={isCollapsed ? label : undefined}
-            onClick={() => {
-              if (label === "Theme") {
-                toggleTheme();
+              if (isMobileOpen) {
+                closeMobileSidebar();
+              } else {
+                setIsCollapsed((current) => !current);
               }
             }}
           >
-            <span className="nav-icon">{icon}</span>
-            {!isCollapsed && (
-              <span className="nav-label">
-                {label === "Theme" && isLightTheme
-                  ? "Light Theme"
-                  : label}
-              </span>
-            )}
+            {isMobileOpen ? "✕" : "◫"}
           </button>
-        ))}
-      </nav>
-    </aside>
+
+          {!isCollapsed && (
+            <div className="sidebar-search">
+              <span>⌕</span>
+              <span>AI Quick Search</span>
+            </div>
+          )}
+        </div>
+
+        <nav className="sidebar-nav" aria-label="Main navigation">
+          {mainItems.map(([icon, label]) => (
+            <button
+              type="button"
+              key={label}
+              className={`nav-item ${
+                label === "Data Analysis" ? "active" : ""
+              }`}
+              title={isCollapsed ? label : undefined}
+              aria-current={
+                label === "Data Analysis" ? "page" : undefined
+              }
+              onClick={closeMobileSidebar}
+            >
+              <span className="nav-icon">{icon}</span>
+              {!isCollapsed && (
+                <span className="nav-label">{label}</span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        <nav
+          className="sidebar-bottom"
+          aria-label="Settings navigation"
+        >
+          {bottomItems.map(([icon, label]) => (
+            <button
+              type="button"
+              className="nav-item"
+              key={label}
+              title={isCollapsed ? label : undefined}
+              onClick={() => {
+                if (label === "Theme") {
+                  toggleTheme();
+                }
+                closeMobileSidebar();
+              }}
+            >
+              <span className="nav-icon">{icon}</span>
+              {!isCollapsed && (
+                <span className="nav-label">
+                  {label === "Theme" && isLightTheme
+                    ? "Light Theme"
+                    : label}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }
